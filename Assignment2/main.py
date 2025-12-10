@@ -6,8 +6,6 @@ Dataset: Facebook Egonets from SNAP
 import networkx as nx
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
@@ -16,9 +14,6 @@ import requests
 import os
 import warnings
 warnings.filterwarnings('ignore')
-
-sns.set_style("whitegrid")
-plt.rcParams['figure.figsize'] = (12, 8)
 
 
 class SocialNetworkAnalyzer:
@@ -243,40 +238,6 @@ class SocialNetworkAnalyzer:
         print(f"Poisoning attack completed: {len(fake_nodes)} sybil nodes, {n_fake_edges} adversarial edges")
         return fake_nodes
     
-    def visualize_graph(self, title="Social Network Graph", node_colors=None, save_path=None):
-        """Visualize the graph"""
-        print(f"\nVisualizing: {title}")
-        
-        plt.figure(figsize=(14, 10))
-        
-        pos = nx.spring_layout(self.G, k=0.5, iterations=50, seed=42)
-        
-        if node_colors is None:
-            node_colors = ['red' if self.bot_labels.get(node, 0) == 1 else 'lightblue' 
-                          for node in self.G.nodes()]
-        
-        nx.draw_networkx_nodes(self.G, pos, node_color=node_colors, 
-                              node_size=30, alpha=0.7)
-        nx.draw_networkx_edges(self.G, pos, alpha=0.2, width=0.5)
-        
-        plt.title(title, fontsize=16, fontweight='bold')
-        plt.axis('off')
-        
-        from matplotlib.patches import Patch
-        legend_elements = [
-            Patch(facecolor='red', alpha=0.7, label='Automated'),
-            Patch(facecolor='lightblue', alpha=0.7, label='Legitimate')
-        ]
-        plt.legend(handles=legend_elements, loc='upper right')
-        
-        plt.tight_layout()
-        
-        if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"Saved to {save_path}")
-        
-        plt.show()
-    
     def evaluate_model_after_attack(self, attack_name):
         """Re-evaluate model after an attack"""
         print(f"\n{'='*60}")
@@ -321,11 +282,6 @@ def main():
     analyzer.compute_graph_metrics()
     analyzer.generate_bot_labels(bot_ratio=0.15)
     
-    analyzer.visualize_graph(
-        title="Original Social Network (Baseline)",
-        save_path="graph_baseline.png"
-    )
-    
     baseline_results = analyzer.train_baseline_model()
     
     G_baseline = analyzer.G.copy()
@@ -333,20 +289,10 @@ def main():
     analyzer.G = G_baseline.copy()
     attack_nodes = analyzer.structural_evasion_attack(n_attacks=20)
     
-    analyzer.visualize_graph(
-        title="After Structural Evasion Attack",
-        save_path="graph_structural_evasion.png"
-    )
-    
     structural_results = analyzer.evaluate_model_after_attack("Structural Evasion")
     
     analyzer.G = G_baseline.copy()
     fake_nodes = analyzer.graph_poisoning_attack(n_attacks=30)
-    
-    analyzer.visualize_graph(
-        title="After Graph Poisoning Attack",
-        save_path="graph_poisoning.png"
-    )
     
     poisoning_results = analyzer.evaluate_model_after_attack("Graph Poisoning")
     
@@ -370,32 +316,9 @@ def main():
     
     print("\n" + comparison.to_string(index=False))
     
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-    
-    axes[0].bar(comparison['Condition'], comparison['Accuracy'], color=['green', 'orange', 'red'])
-    axes[0].set_ylabel('Accuracy', fontsize=12)
-    axes[0].set_title('Detection Accuracy Under Adversarial Conditions', fontsize=14, fontweight='bold')
-    axes[0].set_ylim(0, 1)
-    axes[0].grid(axis='y', alpha=0.3)
-    
-    axes[1].bar(comparison['Condition'], comparison['F1-Score'], color=['green', 'orange', 'red'])
-    axes[1].set_ylabel('F1-Score', fontsize=12)
-    axes[1].set_title('F1-Score Under Adversarial Conditions', fontsize=14, fontweight='bold')
-    axes[1].set_ylim(0, 1)
-    axes[1].grid(axis='y', alpha=0.3)
-    
-    plt.tight_layout()
-    plt.savefig('performance_comparison.png', dpi=300, bbox_inches='tight')
-    plt.show()
-    
     print("\n" + "="*80)
     print("ANALYSIS COMPLETE")
     print("="*80)
-    print("\nGenerated files:")
-    print("- graph_baseline.png")
-    print("- graph_structural_evasion.png")
-    print("- graph_poisoning.png")
-    print("- performance_comparison.png")
     
     return analyzer, comparison
 
