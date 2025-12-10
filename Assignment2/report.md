@@ -1,23 +1,20 @@
 # Social Network Analysis with Bot Detection and Adversarial Attacks
-## Research Report
+## Assignment Report
 
-### 1. Executive Summary
-This report presents an empirical analysis of automated account detection in social networks and the efficacy of adversarial attacks against machine learning-based detection systems. Using the Facebook Egonets dataset from Stanford's Network Analysis Project, we developed a baseline classifier and systematically evaluated its robustness against two adversarial paradigms: Structural Evasion and Graph Poisoning attacks.
+### 1. Introduction
+This report analyzes how to detect bots in social networks and tests how adversarial attacks can fool these detection systems. I used the Facebook dataset from Stanford SNAP to build a classifier and tested two different types of attacks: Structural Evasion and Graph Poisoning.
 
 ---
 
-### 2. Introduction
+### 2. Project Goals
 
-#### 2.1 Background
-Online social networks face persistent challenges from automated accounts that disseminate disinformation, manipulate public discourse, and engage in coordinated inauthentic behavior. Robust detection mechanisms are essential for maintaining platform integrity and user trust.
+The main goals of this project are:
+- Build a social network graph from real data
+- Create a bot detection model using graph features
+- Test how adversarial attacks affect the detection system
+- Compare which attack works better
 
-#### 2.2 Objectives
-- Build and analyze a social network graph from real-world data
-- Develop a bot detection model using graph-based features
-- Evaluate the impact of adversarial attacks on detection performance
-- Compare different attack strategies and their effectiveness
-
-#### 2.3 Dataset
+#### 2.1 Dataset
 - **Source**: Facebook Egonets from Stanford SNAP
 - **Description**: Social circles (friends lists) from Facebook users
 - **Structure**: Undirected graph representing friendship connections
@@ -49,11 +46,11 @@ We extracted the following graph-based features for each node:
 **Community Features:**
 - **Community ID**: Membership in detected communities (modularity-based)
 
-#### 3.3 Label Generation Methodology
-Ground truth labels were derived using behavioral heuristics that correlate with automated account activity:
-- Reduced clustering coefficients (limited community embeddedness)
-- Elevated degree counts (indiscriminate following patterns)
-- Diminished betweenness centrality (peripheral network positioning)
+#### 3.3 How I Labeled Bots
+I created labels for bot accounts based on their behavior patterns:
+- Low clustering coefficient (not well connected in communities)
+- High degree (many connections)
+- Low betweenness centrality (not in the middle of the network)
 
 Bot score formula:
 ```
@@ -67,20 +64,20 @@ bot_score = -clustering + 0.5 × (normalized_degree) - 0.3 × betweenness
 - **Train/Test Split**: 70/30 with stratification
 - **Preprocessing**: Standard scaling
 
-#### 3.5 Attack Scenarios
+#### 3.5 Attack Methods
 
-**Scenario 1: Structural Evasion Attack**
-Local topology manipulation to evade detection mechanisms:
-1. Triangle completion among neighboring nodes (clustering enhancement)
-2. Strategic edge pruning targeting high-degree connections
-3. Preferential attachment to high-centrality nodes (legitimacy signaling)
+**Attack 1: Structural Evasion**
+This attack changes the graph structure around bot nodes:
+1. Add connections to create triangles (increase clustering)
+2. Remove some connections to reduce degree
+3. Connect to important nodes (look more legitimate)
 
-**Scenario 2: Graph Poisoning Attack**
-Training data corruption via adversarial injection:
-1. Sybil node insertion with deceptive connectivity patterns
-2. Strategic linking between sybil nodes and legitimate accounts
-3. Adversarial edges between automated accounts and high-reputation users
-4. Label manipulation (sybil nodes mislabeled as legitimate)
+**Attack 2: Graph Poisoning**
+This attack corrupts the training data:
+1. Add fake nodes that look like real users
+2. Connect fake nodes to real users
+3. Create connections between bots and important users
+4. Label fake nodes as legitimate users
 
 ---
 
@@ -153,63 +150,61 @@ Top features contributing to classification:
 
 ### 5. Discussion
 
-#### 5.1 Impact of Structural Evasion
-- **Mechanism**: Local graph topology manipulation around flagged nodes
-- **Detection Impact**: Minimal degradation (0.17% accuracy drop), but improved recall for automated accounts
-- **Feature Perturbation**: Clustering coefficient increased by 15-25%, betweenness centrality reduced
-- **Evasion Efficacy**: 20 attacked nodes showed improved camouflage, precision dropped to 0.97
+#### 5.1 What I Found - Structural Evasion
+The structural evasion attack had a small effect:
+- Accuracy dropped by only 0.17%
+- Precision for detecting bots dropped from 0.99 to 0.97
+- The attack changed 20 bot nodes by increasing their clustering coefficient by 15-25%
 
-**Observations:**
-- Clustering enhancement reduces structural anomaly scores
-- High-centrality attachments provide legitimacy signals
-- Feature distributions converge toward legitimate account patterns
-- Attack successfully made automated accounts appear more embedded in social communities
-- Triangle creation increased local network density around targeted nodes
+**What This Means:**
+- Making bots look more connected to communities helps them hide
+- Connecting to important users makes bots seem more legitimate
+- The attack worked but only had a small impact overall
+- Bots became harder to detect because they looked more like normal users
 
-#### 5.2 Impact of Graph Poisoning
-- **Mechanism**: Training data corruption via strategic node/edge injection
-- **Detection Impact**: More significant degradation (0.74% accuracy drop), precision reduced to 0.94
-- **Classifier Degradation**: Model learned from 15 mislabeled sybil nodes, creating false negatives
-- **Attack Efficiency**: 30 total modifications (15 nodes + 15 edges) affected global performance
+#### 5.2 What I Found - Graph Poisoning
+The graph poisoning attack had a bigger effect:
+- Accuracy dropped by 0.74%
+- Precision for detecting bots dropped from 0.99 to 0.94
+- Only 30 changes (15 fake nodes + 15 edges) caused this damage
 
-**Observations:**
-- Sybil nodes create ambiguous decision boundaries
-- Adversarial edges reduce class separability
-- Classifier learns corrupted patterns affecting all predictions
-- More effective than structural evasion with 4.4x greater accuracy degradation
-- Affects model's ability to distinguish between legitimate and automated accounts broadly
+**What This Means:**
+- Poisoning the training data is more effective than structural evasion
+- It was 4.4 times more effective at reducing accuracy
+- The fake nodes confused the classifier during training
+- This attack affects the model's overall ability to detect bots
+- Adding bad data to the training set is a powerful attack
 
-#### 5.3 Comparison of Attack Strategies
+#### 5.3 Comparing the Two Attacks
 
-**Structural Evasion Advantages:**
-- Targets specific bot nodes with surgical precision
-- Harder to detect as malicious activity (appears as organic network evolution)
-- Preserves overall graph structure and statistics
-- Minimal impact allows continued operation
+**Structural Evasion:**
+Good points:
+- Targets specific bots
+- Looks like normal network activity
+- Doesn't change the overall graph much
 
-**Structural Evasion Limitations:**
-- Requires modifications to many nodes for significant impact
-- Limited effectiveness (only 0.17% degradation)
-- May still be detectable by temporal analysis
+Bad points:
+- Not very effective (only 0.17% drop)
+- Needs to modify many nodes for bigger impact
 
-**Graph Poisoning Advantages:**
-- More efficient (30 modifications vs. 20 targeted nodes)
-- Corrupts model training directly with 4.4x greater impact
-- Harder to defend against without data validation
-- Affects global model performance
+**Graph Poisoning:**
+Good points:
+- More efficient with fewer changes
+- Much more effective (4.4x better)
+- Affects the whole model
 
-**Graph Poisoning Limitations:**
-- May be detected by graph anomaly detection
-- Requires ability to inject new nodes (platform access)
-- Sybil nodes may be identified through behavioral analysis
+Bad points:
+- Might be caught by anomaly detection
+- Need to be able to add new nodes
+- Fake nodes might be spotted
 
-#### 5.4 Defense Mechanisms
-Potential countermeasures:
-1. **Robust Feature Engineering**: Perturbation-resistant metrics
-2. **Anomaly Detection**: Structural change point detection
-3. **Temporal Analysis**: Longitudinal behavioral patterns
-4. **Ensemble Methods**: Multiple detection paradigms
-5. **Data Sanitization**: Pre-training anomaly filtering
+#### 5.4 Possible Defenses
+Ways to protect against these attacks:
+1. Use features that are harder to fake
+2. Detect unusual changes in the graph structure
+3. Track user behavior over time
+4. Use multiple detection methods together
+5. Clean the data before training
 
 ---
 
@@ -230,68 +225,51 @@ Potential countermeasures:
 
 ---
 
-### 7. Conclusions
+### 7. Conclusion
 
-#### 7.1 Key Findings
-1. Baseline bot detection achieved 99.59% accuracy using graph features
-2. Structural evasion reduced accuracy by 0.17% through local modifications
-3. Graph poisoning reduced accuracy by 0.74% through training data corruption
-4. Graph poisoning was 4.4x more effective at degrading model performance
-5. Both attacks successfully reduced precision while maintaining high recall
-6. The Facebook social network exhibited high clustering (0.606) and community structure (77 communities)
+#### 7.1 Summary of Results
+1. The bot detection model achieved 99.59% accuracy
+2. Structural evasion attack reduced accuracy by 0.17%
+3. Graph poisoning attack reduced accuracy by 0.74%
+4. Graph poisoning was much more effective (4.4x better)
+5. Both attacks made bots harder to detect
+6. The Facebook network has high clustering (0.606) and 77 communities
 
-#### 7.2 Implications
-- Graph-based classifiers exhibit vulnerability to adversarial manipulation
-- Attack paradigms exploit distinct classifier weaknesses
-- Robust detection requires multi-faceted defense strategies
-- Structural features alone prove insufficient in adversarial environments
+#### 7.2 What I Learned
+- Graph-based classifiers can be fooled by adversarial attacks
+- The two attacks exploit different weaknesses
+- We need multiple defense strategies to protect against attacks
+- Using only graph features isn't enough when attackers are involved
 
-#### 7.3 Limitations
-- Heuristic-based labeling may not capture authentic automated account behavior
-- Analysis restricted to structural features (content-agnostic)
-- Single classifier architecture evaluated
-- Simplified attack implementations
+#### 7.3 Limitations of This Project
+- The bot labels are based on heuristics, not real bot data
+- Only used structural features, not content or behavior
+- Only tested one type of classifier
+- The attacks are simplified versions
 
-#### 7.4 Future Research Directions
-- Validation using authenticated bot datasets
-- Implementation of adversarially robust classifiers
-- Graph Neural Network architectures
-- Multi-modal feature integration (structural + behavioral + content)
-- Adaptive detection systems with continuous learning
+#### 7.4 Future Work
+- Test with real bot datasets
+- Try classifiers that are resistant to attacks
+- Use Graph Neural Networks
+- Combine structural, behavioral, and content features
+- Build systems that can adapt to new attacks
 
 ---
 
 ### 8. References
 
 1. Stanford SNAP: Facebook Social Circles Dataset
-   - URL: https://snap.stanford.edu/data/egonets-Facebook.html
+   - https://snap.stanford.edu/data/egonets-Facebook.html
 
 2. NetworkX Documentation
-   - URL: https://networkx.org/documentation/stable/
+   - https://networkx.org/documentation/stable/
 
-3. Graph-based Bot Detection Literature
-   - [Add relevant academic papers]
-
-4. Adversarial Machine Learning
-   - [Add relevant academic papers]
-
-5. Social Network Analysis
-   - [Add relevant books/papers]
+3. Scikit-learn Documentation
+   - https://scikit-learn.org/
 
 ---
 
-### Appendix A: Code Implementation
-[Link to GitHub repository or include key code snippets]
-
-### Appendix B: Additional Visualizations
-[Include any supplementary figures]
-
-### Appendix C: Detailed Results Tables
-[Include full classification reports and confusion matrices]
-
----
-
-**Report Prepared By**: Ahmed
+**Name**: Ahmed Mohamed
 **Date**: December 10, 2025
-**Project**: Social Network Analysis with Adversarial Bot Detection
-**Dataset**: Facebook Egonets - Stanford SNAP
+**Assignment**: Social Network Analysis with Bot Detection
+**Dataset**: Facebook Egonets from Stanford SNAP
