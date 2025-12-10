@@ -71,6 +71,22 @@ The analysis pipeline executes the following workflow:
 - `graph_poisoning.png` - Network after poisoning attack
 - `performance_comparison.png` - Model performance across conditions
 
+## Visualizations
+
+### Network Graphs
+
+#### Baseline Network
+![Baseline Network Graph](graph_baseline.png)
+
+#### Network After Structural Evasion Attack
+![Structural Evasion Network](graph_structural_evasion.png)
+
+#### Network After Poisoning Attack
+![Poisoning Attack Network](graph_poisoning.png)
+
+### Performance Metrics
+![Performance Comparison](performance_comparison.png)
+
 ## Experimental Results
 The system evaluates classifier performance across three conditions:
 1. **Baseline** (clean data)
