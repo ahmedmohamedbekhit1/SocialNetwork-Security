@@ -1,0 +1,18 @@
+	https://snap.stanford.edu/data/egonets-Facebook.html 
+	Build a social network graph. 
+	Compute essential graph metrics (degree, clustering coefficient, centrality, communities 
+	Create a baseline bot detection model using graph-based features extracted from the dataset. 
+	Apply both a Structural Evasion Attack and a Graph Poisoning Attack on selected bot nodes. 
+	Recalculate graph features and evaluate the model again after each attack. 
+	Test the detector on clean data to measure the impact of poisoning. 
+	Visualize the graph before and after each attack scenario. 
+	Compare detection performance across three conditions: Baseline (no attack) 
+	After structural evasion 
+	After graph poisoning 
+	
+	Summarize how each attack affects the classifier’s performance and the graph structure. 
+
+Deliverable 
+•	Report (PDF) 
+•	Code Implementation 
+•	Graphs and
