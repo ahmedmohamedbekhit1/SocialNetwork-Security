@@ -38,7 +38,7 @@ class SocialNetworkAnalyzer:
         if not os.path.exists(data_path):
             os.makedirs(data_path)
             print(f"Created directory: {data_path}")
-            print("Download dataset from https://snap.stanford.edu/data/facebook_combined.txt.gz")
+            print("dataset not exists")
             return None
         
         edges_file = os.path.join(data_path, 'facebook_combined.txt')
